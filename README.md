@@ -11,9 +11,9 @@ Euler angles = Bunge's convention (angles are all in degrees, though there's a f
 ## How to
 Download both files and change the path to your grain file.
 You want to edit the analyzeGrain.py file only:
-  1/ pick your lattice
-  2/ pick your grain # of interest
-  3/ hit 'run'
+  - 1/ pick your lattice
+  - 2/ pick your grain # of interest
+  - 3/ hit 'run'
 nb: You can also change the heading and infer directly your Euler angles.
 
 ## Example
