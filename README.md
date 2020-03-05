@@ -13,8 +13,7 @@ Download both files and change the path to your grain file.
 You want to edit the analyzeGrain.py file only:
   - 1/ pick your lattice
   - 2/ pick your grain # of interest
-  - 3/ hit 'run'
-nb: You can also change the heading and infer directly your Euler angles.
+  - 3/ hit 'run' and check the results!
 
 ## Example
 Here's an example of the code's output, for a grain of Euler angles (194.3,83.2,68.1) in a BCC lattice, grain '48' in 'grainFile2.txt'
