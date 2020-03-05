@@ -38,7 +38,7 @@ def gen_directions(lattice):
     if lattice == 'BCC':
         directions = np.array([[1,1,1],[-1,1,1],[1,-1,1],[1,1,-1]])
     if lattice == 'FCC':
-        directions = np.array([[0,1,1],[0,-1,1],[1,0,1],[-1,0,1],[-1,1,0],[1,1,0]])
+        directions = np.array([[0,1,1], [0,-1,1], [1,0,1], [-1,0,1],[-1,1,0],[1,1,0]])
     return directions
 
 def gen_planes(plane_type):

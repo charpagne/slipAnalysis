@@ -119,3 +119,44 @@ if lattice == 'BCC':
                     gamma_angle = crystallography.get_gamma_angle(planes[plane],directions[direction],eulers_grain)
                     file.write(str(gamma_angle) + "\n")
     file.close()
+    
+    
+if lattice == 'FCC':
+    for plane_type in ('111'):
+        schmidFactors = np.array(crystallography.calc_sfs(eulers_grain,plane_type))
+        if plane_type == '111':
+            legend_x = np.array(['(-111)\n[0-11]','(-111)\n[101]','(-111)\n[110]',
+                           '(111)\n[0-11]','(111)\n[-101]','(111)\n[-110]',
+                           '(-1-11)\n[011]','(-1-11)\n[101]','(-1-11)\n[-110]'
+                           '(1-11)\n[011]'],'(1-11)\n[-101]','(1-11)\n[110]')
+            fig1 = plt.figure(figsize=(9,4))
+            sfbars = plt.bar(x=np.arange(1,schmidFactors.shape[0]+1), height=schmidFactors, 
+                             width=0.8, align='center', data=None,tick_label = legend_x,color='gold')
+            plt.grid(False)
+            fig1.savefig('grain_%s_sf_%s.png' %(grain,int(plane_type)), format='png', dpi=1000)
+
+    # calculate traces through their angle
+    file = open(('grain_%s_plane-traces.txt' %grain),'w')
+    file.write("grain:%s" %grain + "\n") 
+    for plane_type in ('111'):
+        planes = crystallography.gen_planes(plane_type)
+        traces = []
+        for plane in range(planes.shape[0]):
+            file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\t")
+            traces.append(crystallography.plane_trace_components(planes[plane],eulers_grain))
+            file.write(str(crystallography.plane_trace_components(planes[plane],eulers_grain)) + "\n")
+    file.close()
+    #
+    file = open(('grain_%s_gamma-angles.txt' %grain),'w')
+    file.write("grain:%s" %grain + "\n") 
+    for plane_type in ('111'):
+        planes = crystallography.gen_planes(plane_type)
+        directions = crystallography.gen_directions(lattice)
+        for plane in range(planes.shape[0]):
+            file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\n")
+            for direction in range(directions.shape[0]):
+                if np.dot(planes[plane],directions[direction]) == 0:
+                    file.write("direction: %s%s%s" %(directions[direction,0],directions[direction,1],directions[direction,2]) + "\t")
+                    gamma_angle = crystallography.get_gamma_angle(planes[plane],directions[direction],eulers_grain)
+                    file.write(str(gamma_angle) + "\n")
+    file.close()
