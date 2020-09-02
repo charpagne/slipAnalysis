@@ -1,7 +1,7 @@
 # slipAnalysis
 This code calculates and plots schmid factors, plane traces and opening angles in a deformed sample
-Load your grain file in .txt format from TSL OIM or other
-Pick a grain and a lattice (e.g. BCC, FCC), the programm will:
+Load your EBSD file in .txt format from TSL OIM or other
+Pick a grain and a lattice (e.g. BCC, FCC, HCP not implemented yet!), the programm will:
   - compute all Schmid factors, plot and save them
   - compute all plane traces, plot and save them
   - compute all opening angles in the reference frame of the slip band, and save them
