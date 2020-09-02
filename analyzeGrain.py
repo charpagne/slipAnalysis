@@ -9,18 +9,15 @@ import numpy as np
 from matplotlib import pyplot as plt, colors, colorbar, cm
 import crystallography
 import seaborn as sns
-from pymicro.crystal.lattice import Symmetry
-symmetry=Symmetry.cubic
-from pymicro.crystal.texture import PoleFigure
-from pymicro.crystal.microstructure import Microstructure, Grain, Orientation
 sns.set(style="whitegrid")
 
-lattice = 'FCC'
+lattice = 'BCC'
+
 # load grain euler angles from TSL OIM
-grain = 154
-phi1= np.genfromtxt("grainFile2.txt",usecols=[1]).astype(float)
-phi= np.genfromtxt("grainFile2.txt",usecols=[2]).astype(float)
-phi2= np.genfromtxt("grainFile2.txt",usecols=[3]).astype(float)
+grain = 48
+phi1= np.genfromtxt("grainfile2.txt",usecols=[1]).astype(float)
+phi= np.genfromtxt("grainfile2.txt",usecols=[2]).astype(float)
+phi2= np.genfromtxt("grainfile2.txt",usecols=[3]).astype(float)
 phi1 = np.insert(phi1, 0, 0)
 phi = np.insert(phi, 0, 0)
 phi2 = np.insert(phi2, 0, 0)
@@ -29,8 +26,6 @@ numGrains = eulers.shape[0]
 
 # plot schmid factors
 eulers_grain = eulers[grain]
-# eulers_grain = np.array([230.4436252,120.754866,341.4507603])
-
 if lattice == 'BCC':
     for plane_type in ('110','112','123','134'):
         schmidFactors = np.array(crystallography.calc_sfs(eulers_grain,plane_type,lattice))
@@ -126,86 +121,41 @@ if lattice == 'BCC':
     
     
 if lattice == 'FCC':
-    plane_type ='111'
-    schmidFactors = np.array(crystallography.calc_sfs(eulers_grain,plane_type,lattice))
-    legend_x = np.array(['(-111)\n[0-11]','(-111)\n[101]','(-111)\n[110]',
+    for plane_type in ('111'):
+        schmidFactors = np.array(crystallography.calc_sfs(eulers_grain,plane_type))
+        if plane_type == '111':
+            legend_x = np.array(['(-111)\n[0-11]','(-111)\n[101]','(-111)\n[110]',
                            '(111)\n[0-11]','(111)\n[-101]','(111)\n[-110]',
-                           '(-1-11)\n[011]','(-1-11)\n[101]','(-1-11)\n[-110]',
-                           '(1-11)\n[011]','(1-11)\n[-101]','(1-11)\n[110]'])
-    fig1 = plt.figure(figsize=(9,4))
-    sfbars = plt.bar(x=np.arange(1,schmidFactors.shape[0]+1), height=schmidFactors, 
+                           '(-1-11)\n[011]','(-1-11)\n[101]','(-1-11)\n[-110]'
+                           '(1-11)\n[011]'],'(1-11)\n[-101]','(1-11)\n[110]')
+            fig1 = plt.figure(figsize=(9,4))
+            sfbars = plt.bar(x=np.arange(1,schmidFactors.shape[0]+1), height=schmidFactors, 
                              width=0.8, align='center', data=None,tick_label = legend_x,color='navy')
-    plt.grid(False)
-    fig1.savefig('grain_%s_sf_%s.png' %(grain,int(plane_type)), format='png', dpi=1000)
+            plt.grid(False)
+            fig1.savefig('grain_%s_sf_%s.png' %(grain,int(plane_type)), format='png', dpi=1000)
 
     # calculate traces through their angle
     file = open(('grain_%s_plane-traces.txt' %grain),'w')
     file.write("grain:%s" %grain + "\n") 
-
-    planes = crystallography.gen_planes(plane_type)
-    traces = []
-    fig5 = plt.figure(figsize=(5,5))
-    color=iter(cm.nipy_spectral(np.linspace(0,1,planes.shape[0])))
-    ax = plt.subplot(111)
-    ax.set_ylim([-1.2, 1.2])   # set the bounds to be 10, 10
-    ax.set_xlim([-1.2, 1.2])
-    plt.grid(False)
-    for plane in range(planes.shape[0]):
-        c=next(color)
-        file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\t")
-        traces.append(crystallography.plane_trace_components(planes[plane],eulers_grain))
-        file.write(str(crystallography.plane_trace_components(planes[plane],eulers_grain)) + "\n")
-        x_values = (traces[plane][0], -traces[plane][0])
-        y_values = (traces[plane][1],-traces[plane][1])
-        plt.plot(x_values, y_values, '-',c=c, label=(str(planes[plane,0]) + str(planes[plane,1]) + str(planes[plane,2])))
-        plt.axis('off')
-        plt.gca().legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    fig5.savefig('grain%s_traces_%s.png' %(grain,int(plane_type)),format='png', dpi=200, bbox_inches='tight')
+    for plane_type in ('111'):
+        planes = crystallography.gen_planes(plane_type)
+        traces = []
+        for plane in range(planes.shape[0]):
+            file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\t")
+            traces.append(crystallography.plane_trace_components(planes[plane],eulers_grain))
+            file.write(str(crystallography.plane_trace_components(planes[plane],eulers_grain)) + "\n")
     file.close()
-    planes = crystallography.gen_planes(plane_type)
-    traces = []
-    for plane in range(planes.shape[0]):
-        file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\t")
-        traces.append(crystallography.plane_trace_components(planes[plane],eulers_grain))
-        file.write(str(crystallography.plane_trace_components(planes[plane],eulers_grain)) + "\n")
-
     #
     file = open(('grain_%s_gamma-angles.txt' %grain),'w')
     file.write("grain:%s" %grain + "\n") 
-
-    planes = crystallography.gen_planes(plane_type)
-    directions = crystallography.gen_directions(lattice)
-    for plane in range(planes.shape[0]):
-        file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\n")
-        for direction in range(directions.shape[0]):
-            if np.dot(planes[plane],directions[direction]) == 0:
-                file.write("direction: %s%s%s" %(directions[direction,0],directions[direction,1],directions[direction,2]) + "\t")
-                gamma_angle = crystallography.get_gamma_angle(planes[plane],directions[direction],eulers_grain)
-                file.write(str(gamma_angle) + "\n")
+    for plane_type in ('111'):
+        planes = crystallography.gen_planes(plane_type)
+        directions = crystallography.gen_directions(lattice)
+        for plane in range(planes.shape[0]):
+            file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\n")
+            for direction in range(directions.shape[0]):
+                if np.dot(planes[plane],directions[direction]) == 0:
+                    file.write("direction: %s%s%s" %(directions[direction,0],directions[direction,1],directions[direction,2]) + "\t")
+                    gamma_angle = crystallography.get_gamma_angle(planes[plane],directions[direction],eulers_grain)
+                    file.write(str(gamma_angle) + "\n")
     file.close()
-    
-# plot grain in IPF in loading direction
-T = np.array([[ 1., 0., 0.],
-              [0., 1.,  0.],
-              [ 0.,0.,  1.]])
-
-micro = Microstructure()
-grain_of_interest = []
-o_tsl = Orientation.from_euler(eulers_grain)
-g_xyz = np.dot(o_tsl.orientation_matrix(), T.T)  # move to XYZ local frame
-o_xyz = Orientation(g_xyz)
-g = Grain(grain, o_xyz)
-micro.grains.append(g)
-
-# plot intense grains in IPF
-pf = PoleFigure(hkl='111', axis = 'Y', proj = 'stereo', microstructure=micro)
-pf.set_map_field('grain_id')
-pf.pflegend = True  # this works well for a few grains
-pf.mksize = 13
-pf.plot_pole_figures(plot_sst=True, display=True, save_as='png')
-fig = plt.figure(figsize=(10, 6))
-ax1 = fig.add_axes([0.05, 0.05, 0.8, 0.9], aspect='equal')
-pf.plot_sst(ax=ax1, mk='o')
-ax1.set_title('%s-axis SST inverse %s projection' % (pf.axis, pf.proj))
-image_name = 'grain_%s_IPF.png' %grain
-plt.savefig(image_name, format='png',dpi = 300)
