@@ -11,7 +11,7 @@ import crystallography
 import seaborn as sns
 sns.set(style="whitegrid")
 
-lattice = 'BCC'
+lattice = 'FCC'
 
 # load grain euler angles from TSL OIM
 grain = 48
@@ -121,41 +121,74 @@ if lattice == 'BCC':
     
     
 if lattice == 'FCC':
-    for plane_type in ('111'):
-        schmidFactors = np.array(crystallography.calc_sfs(eulers_grain,plane_type))
-        if plane_type == '111':
-            legend_x = np.array(['(-111)\n[0-11]','(-111)\n[101]','(-111)\n[110]',
+    schmidFactors = np.array(crystallography.calc_sfs(eulers_grain,'111',lattice))
+    legend_x = np.array(['(-111)\n[0-11]','(-111)\n[101]','(-111)\n[110]',
                            '(111)\n[0-11]','(111)\n[-101]','(111)\n[-110]',
-                           '(-1-11)\n[011]','(-1-11)\n[101]','(-1-11)\n[-110]'
-                           '(1-11)\n[011]'],'(1-11)\n[-101]','(1-11)\n[110]')
-            fig1 = plt.figure(figsize=(9,4))
-            sfbars = plt.bar(x=np.arange(1,schmidFactors.shape[0]+1), height=schmidFactors, 
+                           '(-1-11)\n[011]','(-1-11)\n[101]','(-1-11)\n[-110]',
+                           '(1-11)\n[011]','(1-11)\n[-101]','(1-11)\n[110]'])
+    fig1 = plt.figure(figsize=(9,4))
+    sfbars = plt.bar(x=np.arange(1,schmidFactors.shape[0]+1), height=schmidFactors, 
                              width=0.8, align='center', data=None,tick_label = legend_x,color='navy')
-            plt.grid(False)
-            fig1.savefig('grain_%s_sf_%s.png' %(grain,int(plane_type)), format='png', dpi=1000)
+    plt.grid(False)
+    fig1.savefig('grain_%s_sf.png' %(grain), format='png', dpi=1000)
 
     # calculate traces through their angle
     file = open(('grain_%s_plane-traces.txt' %grain),'w')
     file.write("grain:%s" %grain + "\n") 
-    for plane_type in ('111'):
-        planes = crystallography.gen_planes(plane_type)
-        traces = []
-        for plane in range(planes.shape[0]):
-            file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\t")
-            traces.append(crystallography.plane_trace_components(planes[plane],eulers_grain))
-            file.write(str(crystallography.plane_trace_components(planes[plane],eulers_grain)) + "\n")
+    planes = crystallography.gen_planes('111')
+    traces = []
+    for plane in range(planes.shape[0]):
+        file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\t")
+        traces.append(crystallography.plane_trace_components(planes[plane],eulers_grain))
+        file.write(str(crystallography.plane_trace_components(planes[plane],eulers_grain)) + "\n")
     file.close()
     #
     file = open(('grain_%s_gamma-angles.txt' %grain),'w')
     file.write("grain:%s" %grain + "\n") 
-    for plane_type in ('111'):
-        planes = crystallography.gen_planes(plane_type)
-        directions = crystallography.gen_directions(lattice)
-        for plane in range(planes.shape[0]):
-            file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\n")
-            for direction in range(directions.shape[0]):
-                if np.dot(planes[plane],directions[direction]) == 0:
-                    file.write("direction: %s%s%s" %(directions[direction,0],directions[direction,1],directions[direction,2]) + "\t")
-                    gamma_angle = crystallography.get_gamma_angle(planes[plane],directions[direction],eulers_grain)
-                    file.write(str(gamma_angle) + "\n")
+    planes = crystallography.gen_planes('111')
+    directions = crystallography.gen_directions(lattice)
+    for plane in range(planes.shape[0]):
+        file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\n")
+        for direction in range(directions.shape[0]):
+            if np.dot(planes[plane],directions[direction]) == 0:
+                file.write("direction: %s%s%s" %(directions[direction,0],directions[direction,1],directions[direction,2]) + "\t")
+                gamma_angle = crystallography.get_gamma_angle(planes[plane],directions[direction],eulers_grain)
+                file.write(str(gamma_angle) + "\n")
+    file.close()
+    
+        # plot plane traces
+    file = open(('grain_%s_plane-traces.txt' %grain),'w')
+    file.write("grain:%s" %grain + "\n") 
+    planes = crystallography.gen_planes('111')
+    traces = []
+    fig5 = plt.figure(figsize=(5,5))
+    color=iter(cm.nipy_spectral(np.linspace(0,1,planes.shape[0])))
+    ax = plt.subplot(111)
+    ax.set_ylim([-1.2, 1.2])   # set the bounds to be 10, 10
+    ax.set_xlim([-1.2, 1.2])
+    plt.grid(False)
+    for plane in range(planes.shape[0]):
+        c=next(color)
+        file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\t")
+        traces.append(crystallography.plane_trace_components(planes[plane],eulers_grain))
+        file.write(str(crystallography.plane_trace_components(planes[plane],eulers_grain)) + "\n")
+        x_values = (traces[plane][0], -traces[plane][0])
+        y_values = (traces[plane][1],-traces[plane][1])
+        plt.plot(x_values, y_values, '-',c=c, label=(str(planes[plane,0]) + str(planes[plane,1]) + str(planes[plane,2])))
+        plt.axis('off')
+        plt.gca().legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    fig5.savefig('grain%s_traces.png' %(grain),format='png', dpi=200, bbox_inches='tight')
+    file.close()
+    #
+    file = open(('grain_%s_gamma-angles.txt' %grain),'w')
+    file.write("grain:%s" %grain + "\n") 
+    planes = crystallography.gen_planes('111')
+    directions = crystallography.gen_directions()
+    for plane in range(planes.shape[0]):
+        file.write("plane:%s%s%s" %(planes[plane,0],planes[plane,1],planes[plane,2]) + "\n")
+        for direction in range(directions.shape[0]):
+            if np.dot(planes[plane],directions[direction]) == 0:
+                file.write("direction: %s%s%s"  %(directions[direction,0],directions[direction,1],directions[direction,2]) + "\t")
+                gamma_angle = crystallography.get_gamma_angle(planes[plane],directions[direction],eulers_grain)
+                file.write(str(gamma_angle) + "\n")
     file.close()
